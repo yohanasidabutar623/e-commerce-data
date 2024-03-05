@@ -4,10 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import streamlit as st
 from babel.numbers import format_currency
-import folium
-from folium.plugins import HeatMap
-from streamlit_folium import st_folium
-
 # Judul
 st.title("E-commerce Data Analysis Dashboard")
 
