@@ -36,5 +36,7 @@ st.write("""
 """)
 
 st.image('ilustrasi.png', width=500)
-
+st.write("""
+Dari data dan grafik yang ada, terlihat bahwa mayoritas pembeli sangat puas dengan pelayanan yang ada. Namun penilaian tingkat kepuasan paling rendah mendapat review yang cukup banyak, hal ini dapat dievaluasi lebih lanjut untuk perbaikan ke depannya.
+""")
 st.caption('Copyright Yohana Sidabutar 2024')
