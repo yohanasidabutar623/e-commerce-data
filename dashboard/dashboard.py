@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import streamlit as st
 from babel.numbers import format_currency
+
 # Judul
 st.title("E-commerce Data Analysis Dashboard")
 
@@ -48,8 +49,12 @@ df_sellers = pd.read_csv('data/sellers_dataset.csv')
 df_sellers = df_sellers.rename(columns={'seller_zip_code_prefix':'zipcode'})
 top_seller = df_sellers['seller_city'].value_counts().head(5)
 
-st.subheader('Contoh Data E-Commerce')
+all_df = pd.read_csv('dashboard/all_df.csv')
 
+st.subheader('Contoh lain')
+
+st.write(""" Kita bisa melihat dan membaca daerah atau kota mana yang memiliki transaksi paling banyak dan paling sedikit. Hal ini membantu kita untuk membaca peluang bisnis.
+""") 
 grafik, (customer, seller) = plt.subplots(1, 2, figsize=(15, 8))
 
 import matplotlib.pyplot as plt
@@ -74,5 +79,68 @@ seller.set_ylabel('Frekuensi')
 seller.set_xticklabels(seller.get_xticklabels(), rotation=0)
 
 st.pyplot(grafik)
+
+
+st.write(""" Kita dapat juga melihat hasil penjualan dalam kurun waktu tertentu
+""")        
+def create_daily_orders_df(df):
+    daily_orders_df = df.resample(rule='D', on='order_purchase_timestamp').agg({
+        "order_id": "nunique",
+        "payment_value": "sum"
+    })
+    daily_orders_df = daily_orders_df.reset_index()
+    daily_orders_df.rename(columns={
+        "order_id": "order_count",
+        "payment_value": "untung"
+    }, inplace=True)
+    
+    return daily_orders_df
+
+datetime_columns = ["order_purchase_timestamp", "order_estimated_delivery_date"]
+all_df.sort_values(by="order_purchase_timestamp", inplace=True)
+all_df.reset_index(inplace=True)
+
+for column in datetime_columns:
+    all_df[column] = pd.to_datetime(all_df[column])
+
+min_date = all_df["order_purchase_timestamp"].min()
+max_date = all_df["order_purchase_timestamp"].max()
+
+with st.sidebar:
+    # Mengambil start_date & end_date dari date_input
+    start_date, end_date = st.date_input(
+        label='Periode', min_value=min_date,
+        max_value=max_date,
+        value=[min_date, max_date]
+    )
+
+main_df = all_df[(all_df["order_purchase_timestamp"] >= str(start_date)) & 
+                (all_df["order_purchase_timestamp"] <= str(end_date))]
+daily_orders_df = create_daily_orders_df(main_df)
+
+col1, col2 = st.columns(2)
+with col1:
+    total_orders = daily_orders_df.order_count.sum()
+    st.metric("Jumlah pesanan", value=total_orders)
+
+with col2:
+    total_untung = format_currency(daily_orders_df.untung.sum(), "AUD", locale='es_CO') 
+    st.metric("Keuntungan", value=total_untung)
+
+fig, ax = plt.subplots(figsize=(16, 8))
+ax.plot(
+    daily_orders_df["order_purchase_timestamp"],
+    daily_orders_df["order_count"],
+    marker='o', 
+    linewidth=2,
+    color="#FF5733"  
+)
+ax.tick_params(axis='y', labelsize=20)
+ax.tick_params(axis='x', labelsize=15)
+
+st.pyplot(fig)
+
+
+
 
 st.caption('Copyright Yohana Sidabutar 2024')
